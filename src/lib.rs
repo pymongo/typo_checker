@@ -1,5 +1,7 @@
+type MyResult<T> = Result<T, Box<dyn std::error::Error>>;
+
 struct TypoChecker {
-    /// TODO use tire data structure to store words for better performance
+    /// TODO use tire(prefix tree) data structure to store words for better performance
     words: Vec<String>
 }
 
@@ -8,25 +10,26 @@ impl TypoChecker {
         use std::io::{Write, BufRead, BufReader};
         const WORDS_FILENAME: &str = "english_words.txt";
 
-        fn download_words_list() {
+        fn download_words_list() -> MyResult<()> {
             let mut http_response = Vec::new();
             let mut easy = curl::easy::Easy::new();
             // english words corpus: github.com/dwyl/english-words
-            easy.url("https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt").unwrap();
+            easy.url("https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt")?;
             let mut transfer = easy.transfer();
             transfer.write_function(|data| {
                 http_response.extend_from_slice(data);
                 Ok(data.len())
-            }).unwrap();
-            transfer.perform().unwrap();
+            })?;
+            transfer.perform()?;
             drop(transfer);
             // cache words list to file
-            let mut file = std::fs::File::create(WORDS_FILENAME).unwrap();
-            file.write_all(&http_response).unwrap();
+            let mut file = std::fs::File::create(WORDS_FILENAME)?;
+            file.write_all(&http_response)?;
+            Ok(())
         }
     
         if !std::path::Path::new(WORDS_FILENAME).exists() {
-            download_words_list();
+            download_words_list().unwrap();
         }
         let mut words = vec![];
         let word_file = BufReader::new(std::fs::File::open(WORDS_FILENAME).unwrap());
@@ -51,7 +54,6 @@ impl TypoChecker {
         }
         suggestions
     }
-    // fn is_bad_word(&self, word: &String) -> bool { self.words.contains(word)}
 }
 
 #[test]
