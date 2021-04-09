@@ -1,20 +1,23 @@
+#![allow(dead_code)]
 type MyResult<T> = Result<T, Box<dyn std::error::Error>>;
 
 struct TypoChecker {
     /// TODO use tire(prefix tree) data structure to store words for better performance
-    words: Vec<String>
+    words: Vec<String>,
 }
 
 impl TypoChecker {
     fn new() -> Self {
-        use std::io::{Write, BufRead, BufReader};
+        use std::io::{BufRead, BufReader, Write};
         const WORDS_FILENAME: &str = "english_words.txt";
 
         fn download_words_list() -> MyResult<()> {
             let mut http_response = Vec::new();
             let mut easy = curl::easy::Easy::new();
             // english words corpus: github.com/dwyl/english-words
-            easy.url("https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt")?;
+            easy.url(
+                "https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt",
+            )?;
             let mut transfer = easy.transfer();
             transfer.write_function(|data| {
                 http_response.extend_from_slice(data);
@@ -27,7 +30,7 @@ impl TypoChecker {
             file.write_all(&http_response)?;
             Ok(())
         }
-    
+
         if !std::path::Path::new(WORDS_FILENAME).exists() {
             download_words_list().unwrap();
         }
@@ -36,9 +39,7 @@ impl TypoChecker {
         for line in word_file.lines().flatten() {
             words.push(line);
         }
-        Self {
-            words
-        }
+        Self { words }
     }
 
     fn typo_suggestions(&self, input: &str) -> Vec<String> {
@@ -60,5 +61,9 @@ impl TypoChecker {
 fn test_typo_checker() {
     let typo_checker = TypoChecker::new();
     let input = "doo";
-    println!("Unknown word `{}`, did you mean one of {:?}?", input, typo_checker.typo_suggestions(input));
+    println!(
+        "Unknown word `{}`, did you mean one of {:?}?",
+        input,
+        typo_checker.typo_suggestions(input)
+    );
 }
