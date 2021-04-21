@@ -4,6 +4,5 @@ version = "0.1.0"
 authors = ["w <os.popen@gmail.com>"]
 edition = "2018"
 
-[dependencies]
-rustc_span = { version = "712.0.0", package = "rustc-ap-rustc_span" }
-curl = "0.4.35"
+[package.metadata.rust-analyzer]
+rustc_private = true
